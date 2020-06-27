@@ -26,22 +26,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
+//! Module for all drivers like GPIO, I2C, SPI, etc.
 
-#[macro_use]
-extern crate bitflags;
-// extern crate sysfs_gpio;
-
-mod cmd;
-mod driver;
-mod error;
-mod write;
-
-pub use crate::cmd::HD44780;
-pub use crate::cmd::{DisplayMode, EntryMode, FunctionMode, ShiftMode};
-pub use crate::driver::gpio_driver::GpioDriver;
-pub use crate::error::{HdError, Result};
-pub use crate::write::Write;
-/// Normal wait for commands to finish.
-/// This is normal 37us at the default 270KHz.
-/// 37us + 10% fudge factor rounded up.
-pub const COMMAND_WAIT: u16 = 41;
+pub mod gpio_driver;

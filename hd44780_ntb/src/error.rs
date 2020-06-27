@@ -26,22 +26,20 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
+//! A common set of error and result type used in the library.
 
-#[macro_use]
-extern crate bitflags;
-// extern crate sysfs_gpio;
+use thiserror::Error;
 
-mod cmd;
-mod driver;
-mod error;
-mod write;
+/// Provides a shared set of error types.
+#[derive(Error, Debug)]
+pub enum HdError {
+    /// Used if data bus given is not 4 or 8 bits long.
+    #[error("Data must be 4 or 8 OutputPins")]
+    IncorrectDataLen,
+    /// Used if given output GPIO pin can not be set.
+    #[error("Could not set {0} output pin")]
+    SetOutputPin(&'static str),
+}
 
-pub use crate::cmd::HD44780;
-pub use crate::cmd::{DisplayMode, EntryMode, FunctionMode, ShiftMode};
-pub use crate::driver::gpio_driver::GpioDriver;
-pub use crate::error::{HdError, Result};
-pub use crate::write::Write;
-/// Normal wait for commands to finish.
-/// This is normal 37us at the default 270KHz.
-/// 37us + 10% fudge factor rounded up.
-pub const COMMAND_WAIT: u16 = 41;
+/// Common result used as return type from functions in library.
+pub type Result = std::result::Result<(), HdError>;
