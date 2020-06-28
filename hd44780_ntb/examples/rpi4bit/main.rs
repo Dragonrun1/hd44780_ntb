@@ -42,11 +42,12 @@
 //! ```
 
 use anyhow::{Context, Result};
-use hd44780_ntb::{DisplayMode, EntryMode, FunctionMode, GpioDriver, Write, HD44780};
+use hd44780_ntb::{DisplayMode, EntryMode, FunctionMode, GpioDriver, HD44780};
 use linux_embedded_hal::sysfs_gpio::Direction;
 use linux_embedded_hal::{Delay, Pin};
 use std::thread::sleep;
 use std::time::Duration;
+use std::io::Write;
 
 const MESSAGE_DELAY: u64 = 2;
 /// Some common default GPIO pin numbers
@@ -65,15 +66,14 @@ fn main() -> Result<()> {
     println!("setup");
     let (rs, e, data) = setup()?;
     println!("data length: {}", data.len());
-    let mut delay = Delay;
-    let mut lcd = GpioDriver::new(rs, e, data);
+    let mut lcd = GpioDriver::new(rs, e, data, Delay);
     let dc = Some(DisplayMode::DISPLAY_ON);
     let ems = Some(EntryMode::ENTRY_LEFT | EntryMode::ENTRY_SHIFT_DECREMENT);
     let fm = Some(FunctionMode::LINES_2);
-    lcd.init(&mut delay, fm, dc, ems)
+    lcd.init(fm, dc, ems)
         .context("Failed to initialize display instance")?;
-    display_loop(&mut delay, &mut lcd)?;
-    lcd.return_home(&mut delay)
+    display_loop(&mut lcd)?;
+    lcd.return_home()
         .context("Failed to home the display")?;
     println!("destroy");
     destroy()
@@ -105,20 +105,20 @@ fn destroy() -> Result<()> {
 
 /// Main display loop for messages.
 //noinspection DuplicatedCode
-fn display_loop(delay: &mut Delay, lcd: &mut GpioDriver<Pin, Pin, Pin>) -> Result<()> {
+fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
     for _ in 0..5 {
-        lcd.clear_display(delay)
+        lcd.clear_display()
             .context("Failed to clear the display")?;
         let mut message = "May the Rust ...\n... be with you!";
         println!("{}", message);
-        lcd.write_str(message, delay)
+        lcd.write(message.as_ref())
             .context("Failed to write string")?;
         sleep(Duration::from_secs(MESSAGE_DELAY));
-        lcd.clear_display(delay)
+        lcd.clear_display()
             .context("Failed to clear the display")?;
         message = "Ferris says \"Hi\"";
         println!("{}", message);
-        lcd.write_str(message, delay)
+        lcd.write(message.as_ref())
             .context("Failed to write string")?;
         sleep(Duration::from_secs(MESSAGE_DELAY));
     }

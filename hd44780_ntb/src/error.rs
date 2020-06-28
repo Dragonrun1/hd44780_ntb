@@ -39,6 +39,14 @@ pub enum HdError {
     /// Used if given output GPIO pin can not be set.
     #[error("Could not set {0} output pin")]
     SetOutputPin(&'static str),
+    #[error("Write failed")]
+    Write(#[from] std::io::Error),
+}
+
+impl From<HdError> for std::io::Error {
+    fn from(he: HdError) -> Self {
+        he.into()
+    }
 }
 
 /// Common result used as return type from functions in library.

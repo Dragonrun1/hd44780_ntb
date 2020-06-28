@@ -29,18 +29,24 @@
 //! Contains the HD44780 display controller command set trait and associated
 //! parameter types.
 
-use crate::write::RegisterSelect::Cmnd;
-use crate::write::Write;
-use crate::{Result, COMMAND_WAIT};
-use embedded_hal::blocking::delay::DelayUs;
+// use crate::write::RegisterSelect::Cmnd;
+// use crate::write::Write;
+use crate::Result;
+// use embedded_hal::blocking::delay::DelayUs;
+use std::io::Write;
 
 /// Complete command set for HD44780 display controller.
 ///
 /// Refer to Hitachi HD44780U's data sheet for more information.
-pub trait HD44780<D>: Write<D>
-where
-    D: DelayUs<u16>,
+pub trait HD44780: Write
 {
+    fn command(&mut self, byte: u8) -> Result;
+    fn init(
+        &mut self,
+        fs_mode: Option<FunctionMode>,
+        dc_mode: Option<DisplayMode>,
+        ems_mode: Option<EntryMode>,
+    ) -> Result;
     /// Clear the display.
     ///
     /// Clears the DDRAM and sets the address to 0.
@@ -48,12 +54,9 @@ where
     /// ```edition2018,ignore
     /// lcd.clear_display(delay)?;
     /// ```
-    fn clear_display(&mut self, delay: &mut D) -> Result {
+    fn clear_display(&mut self) -> Result {
         let cmd: u8 = Self::CLEAR_DISPLAY;
-        self.write(cmd, Cmnd, delay)?;
-        // Wait for command to finish.
-        delay.delay_us(1600u16);
-        Ok(())
+        self.command(cmd)
     }
     /// Used to shift the display or the cursor to the left or right.
     ///
@@ -62,12 +65,9 @@ where
     /// let sm = ShiftMode::CURSOR_MOVE | ShiftMode::MOVE_RIGHT
     /// lcd.cursor_shift(sm, delay)?;
     /// ```
-    fn cursor_shift(&mut self, mode: &ShiftMode, delay: &mut D) -> Result {
+    fn cursor_shift(&mut self, mode: &ShiftMode) -> Result {
         let cmd: u8 = Self::CURSOR_SHIFT | mode.bits();
-        self.write(cmd, Cmnd, delay)?;
-        // Wait for command to finish.
-        delay.delay_us(COMMAND_WAIT);
-        Ok(())
+        self.command(cmd)
     }
     /// Set display on/off controls.
     ///
@@ -77,12 +77,9 @@ where
     /// let dm = DisplayMode::DISPLAY_ON | DisplayMode::CURSOR_ON;
     /// lcd.display_control(dm, delay)?;
     /// ```
-    fn display_control(&mut self, mode: &DisplayMode, delay: &mut D) -> Result {
+    fn display_control(&mut self, mode: &DisplayMode) -> Result {
         let cmd = Self::DISPLAY_CONTROL | mode.bits();
-        self.write(cmd, Cmnd, delay)?;
-        // Wait for command to finish.
-        delay.delay_us(COMMAND_WAIT);
-        Ok(())
+        self.command(cmd)
     }
     /// Sets data cursor direction and display shifting.
     ///
@@ -93,12 +90,9 @@ where
     /// // EntryMode::default() == EntryMode::ENTRY_SHIFT_INCREMENT
     /// lcd.entry_mode_set(EntryMode::default(), delay)?;
     /// ```
-    fn entry_mode_set(&mut self, mode: &EntryMode, delay: &mut D) -> Result {
+    fn entry_mode_set(&mut self, mode: &EntryMode) -> Result {
         let cmd: u8 = Self::ENTRY_MODE_SET | mode.bits();
-        self.write(cmd, Cmnd, delay)?;
-        // Wait for command to finish.
-        delay.delay_us(COMMAND_WAIT);
-        Ok(())
+        self.command(cmd)
     }
     /// Used to initialize the interface size (4, 8 bit), display line count, and font.
     ///
@@ -109,15 +103,12 @@ where
     /// let im = InitMode::DATA_4BIT | InitMode::LINES_2;
     /// lcd.function_set(im, delay).?;
     /// ```
-    fn function_set(&mut self, mode: &FunctionMode, delay: &mut D) -> Result {
+    fn function_set(&mut self, mode: &FunctionMode) -> Result {
         if mode.contains(FunctionMode::LINES_2) && mode.contains(FunctionMode::DOTS_5X10) {
             todo!("Need to handle illegal combination here")
         }
         let cmd: u8 = Self::FUNCTION_SET | mode.bits();
-        self.write(cmd, Cmnd, delay)?;
-        // Wait for command to finish.
-        delay.delay_us(COMMAND_WAIT);
-        Ok(())
+        self.command(cmd)
     }
     /// Reset the cursor to home position.
     ///
@@ -127,12 +118,9 @@ where
     /// ```edition2018,ignore
     /// lcd.return_home(delay)?;
     /// ```
-    fn return_home(&mut self, delay: &mut D) -> Result {
+    fn return_home(&mut self) -> Result {
         let cmd: u8 = Self::RETURN_HOME;
-        self.write(cmd, Cmnd, delay)?;
-        // Wait for command to finish.
-        delay.delay_us(1600u16);
-        Ok(())
+        self.command(cmd)
     }
     /// Set CGRAM(Custom Char) address.
     ///
@@ -141,13 +129,10 @@ where
     /// let location = 0x09;
     /// lcd.set_cg_ram_addr(location, delay)?;
     /// ```
-    fn set_cg_ram_addr(&mut self, address: &u8, delay: &mut D) -> Result {
+    fn set_cg_ram_addr(&mut self, address: &u8) -> Result {
         let address = address & 0b0011_1111;
         let cmd: u8 = Self::SET_CG_RAM_ADDR | address;
-        self.write(cmd, Cmnd, delay)?;
-        // Wait for command to finish.
-        delay.delay_us(COMMAND_WAIT);
-        Ok(())
+        self.command(cmd)
     }
     /// Set DDRAM(Display) address.
     ///
@@ -156,21 +141,11 @@ where
     /// let location = 0x40;
     /// lcd.set_dd_ram_addr(location, &mut delay)?;
     /// ```
-    fn set_dd_ram_addr(&mut self, address: &u8, delay: &mut D) -> Result {
+    fn set_dd_ram_addr(&mut self, address: &u8) -> Result {
         let address = address & 0b0111_1111;
         let cmd: u8 = Self::SET_DD_RAM_ADDR | address;
-        self.write(cmd, Cmnd, delay)?;
-        // Wait for command to finish.
-        delay.delay_us(COMMAND_WAIT);
-        Ok(())
+        self.command(cmd)
     }
-    fn init(
-        &mut self,
-        delay: &mut D,
-        fs_mode: Option<FunctionMode>,
-        dc_mode: Option<DisplayMode>,
-        ems_mode: Option<EntryMode>,
-    ) -> Result;
     // Commands
     const CLEAR_DISPLAY: u8 = 0x01;
     const CURSOR_SHIFT: u8 = 0x10;

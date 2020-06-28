@@ -42,11 +42,12 @@
 //! ```
 
 use anyhow::{Context, Result};
-use hd44780_ntb::{DisplayMode, EntryMode, FunctionMode, GpioDriver, Write, HD44780};
+use hd44780_ntb::{DisplayMode, EntryMode, FunctionMode, GpioDriver, HD44780};
 use linux_embedded_hal::sysfs_gpio::Direction;
 use linux_embedded_hal::{Delay, Pin};
 use std::thread::sleep;
 use std::time::Duration;
+use std::io::Write;
 
 const MESSAGE_DELAY: u64 = 2;
 /// Some common default GPIO pin numbers
@@ -64,25 +65,26 @@ const PIN_D1: u64 = 20;
 const PIN_D2: u64 = 16;
 const PIN_D3: u64 = 12;
 
+/// Entry point of example.
 //noinspection DuplicatedCode
 fn main() -> Result<()> {
     println!("setup");
     let (rs, e, data) = setup()?;
     println!("data length: {}", data.len());
-    let mut delay = Delay;
-    let mut lcd = GpioDriver::new(rs, e, data);
+    let mut lcd = GpioDriver::new(rs, e, data, Delay);
     let dc = Some(DisplayMode::DISPLAY_ON);
     let ems = Some(EntryMode::ENTRY_LEFT | EntryMode::ENTRY_SHIFT_DECREMENT);
     let fm = Some(FunctionMode::LINES_2);
-    lcd.init(&mut delay, fm, dc, ems)
+    lcd.init(fm, dc, ems)
         .context("Failed to initialize display instance")?;
-    display_loop(&mut delay, &mut lcd)?;
-    lcd.return_home(&mut delay)
+    display_loop(&mut lcd)?;
+    lcd.return_home()
         .context("Failed to home the display")?;
     println!("destroy");
     destroy()
 }
 
+/// Resets GPIO pins as inputs and releases them back to the OS.
 //noinspection DuplicatedCode
 fn destroy() -> Result<()> {
     let rs = Pin::new(PIN_RS);
@@ -108,27 +110,29 @@ fn destroy() -> Result<()> {
     Ok(())
 }
 
+/// Main display loop for messages.
 //noinspection DuplicatedCode
-fn display_loop(delay: &mut Delay, lcd: &mut GpioDriver<Pin, Pin, Pin>) -> Result<()> {
+fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
     for _ in 0..5 {
-        lcd.clear_display(delay)
+        lcd.clear_display()
             .context("Failed to clear the display")?;
         let mut message = "May the Rust ...\n... be with you!";
         println!("{}", message);
-        lcd.write_str(message, delay)
+        lcd.write(message.as_ref())
             .context("Failed to write string")?;
         sleep(Duration::from_secs(MESSAGE_DELAY));
-        lcd.clear_display(delay)
+        lcd.clear_display()
             .context("Failed to clear the display")?;
         message = "Ferris says \"Hi\"";
         println!("{}", message);
-        lcd.write_str(message, delay)
+        lcd.write(message.as_ref())
             .context("Failed to write string")?;
         sleep(Duration::from_secs(MESSAGE_DELAY));
     }
     Ok(())
 }
 
+/// Gets the GPIO pins from OS and sets them up as outputs.
 //noinspection DuplicatedCode
 fn setup() -> Result<(Pin, Pin, Vec<Pin>)> {
     let rs = Pin::new(PIN_RS);

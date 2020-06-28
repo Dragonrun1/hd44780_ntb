@@ -31,12 +31,14 @@
 //! This is a very simple blocking bit-bang way of doing things which is
 //! commonly used with many micro-controllers.
 
-use crate::cmd::HD44780;
-use crate::error::HdError::{IncorrectDataLen, SetOutputPin};
-use crate::write::{RegisterSelect, RegisterSelect::Cmnd, Write};
-use crate::{DisplayMode, EntryMode, FunctionMode, Result};
 use embedded_hal::blocking::delay::DelayUs;
 use embedded_hal::digital::v2::OutputPin;
+use crate::{DisplayMode, EntryMode, FunctionMode, Result};
+use crate::cmd::HD44780;
+use crate::error::HdError::{IncorrectDataLen, SetOutputPin};
+// use crate::write::{RegisterSelect, RegisterSelect::Cmnd, Write};
+use crate::write::RegisterSelect::{self, Cmnd, Data};
+use std::io::Write;
 
 /// This is the driver used for direct GPIO pin connected HD44780 displays.
 ///
@@ -57,22 +59,25 @@ use embedded_hal::digital::v2::OutputPin;
 /// [new()](GpioDriver::new())
 /// function when creating a new instance.
 #[derive(Debug)]
-pub struct GpioDriver<RS, EN, DP>
+pub struct GpioDriver<RS, EN, DP, D>
 where
     RS: OutputPin,
     EN: OutputPin,
     DP: OutputPin,
+    D: DelayUs<u16>,
 {
     rs: RS,
     e: EN,
     data: Vec<DP>,
+    delay: D,
 }
 
-impl<RS, EN, DP> GpioDriver<RS, EN, DP>
+impl<RS, EN, DP, D> GpioDriver<RS, EN, DP, D>
 where
     RS: OutputPin,
     EN: OutputPin,
     DP: OutputPin,
+    D: DelayUs<u16>,
 {
     /// Create a new instance of driver.
     ///
@@ -97,7 +102,7 @@ where
     /// and
     /// [Raspberry Pi 8 bit](../../../../../../examples/rpi8bit/main.rs)
     /// examples.
-    pub fn new(rs: RS, e: EN, data: Vec<DP>) -> GpioDriver<RS, EN, DP>
+    pub fn new(rs: RS, e: EN, data: Vec<DP>, delay: D) -> GpioDriver<RS, EN, DP, D>
 // where
     //     P: &'a mut Vec<&'a mut DP>,
     {
@@ -106,44 +111,82 @@ where
             e,
             // data: data.into(),
             data,
+            delay,
         }
     }
 }
 
-impl<RS, EN, DP, D> Write<D> for GpioDriver<RS, EN, DP>
+impl<RS, EN, DP, D> Write for GpioDriver<RS, EN, DP, D>
 where
     RS: OutputPin,
     EN: OutputPin,
     DP: OutputPin,
     D: DelayUs<u16>,
 {
-    fn write(&mut self, byte: u8, ctrl: RegisterSelect, delay: &mut D) -> Result {
-        self.set_control_bits(ctrl)?;
-        match self.data.len() {
-            4 => {
-                let nibble = (byte & 0b1111_0000u8) >> 4;
-                Self::set_bus_bits(nibble, &mut self.data[..])?;
-                self.enable_bit_toggle(delay)?;
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        for byte in buf {
+            match self.data.len() {
+                4 => {
+                    let nibble = (byte & 0b1111_0000u8) >> 4;
+                    Self::set_bus_bits(nibble, &mut self.data[..])?;
+                    self.enable_bit_toggle()?;
+                }
+                8 => {
+                    // Nothing special needs to be done for 8 bit bus.
+                }
+                _ => return Err(IncorrectDataLen.into()),
             }
-            8 => {
-                // Nothing special needs to be done for 8 bit bus.
-            }
-            _ => return Err(IncorrectDataLen),
+            // Write lower nibble or full byte as needed.
+            Self::set_bus_bits(*byte, &mut self.data[..])?;
+            self.enable_bit_toggle()?;
         }
-        // Write lower nibble or full byte as needed.
-        Self::set_bus_bits(byte, &mut self.data[..])?;
-        self.enable_bit_toggle(delay)?;
+        Ok(buf.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
     }
 }
 
-impl<RS, EN, DP, D> HD44780<D> for GpioDriver<RS, EN, DP>
+// impl<RS, EN, DP, D> Write<D> for GpioDriver<RS, EN, DP, D>
+// where
+//     RS: OutputPin,
+//     EN: OutputPin,
+//     DP: OutputPin,
+//     D: DelayUs<u16>,
+// {
+//     fn write(&mut self, byte: u8, ctrl: RegisterSelect, delay: &mut D) -> Result {
+//         self.set_control_bits(ctrl)?;
+//         match self.data.len() {
+//             4 => {
+//                 let nibble = (byte & 0b1111_0000u8) >> 4;
+//                 Self::set_bus_bits(nibble, &mut self.data[..])?;
+//                 self.enable_bit_toggle(delay)?;
+//             }
+//             8 => {
+//                 // Nothing special needs to be done for 8 bit bus.
+//             }
+//             _ => return Err(IncorrectDataLen),
+//         }
+//         // Write lower nibble or full byte as needed.
+//         Self::set_bus_bits(byte, &mut self.data[..])?;
+//         self.enable_bit_toggle(delay)?;
+//         Ok(())
+//     }
+// }
+
+impl<RS, EN, DP, D> HD44780 for GpioDriver<RS, EN, DP, D>
 where
     RS: OutputPin,
     EN: OutputPin,
     DP: OutputPin,
     D: DelayUs<u16>,
 {
+    fn command(&mut self, byte: u8) -> Result {
+        self.set_control_bits(Cmnd)?;
+        self.write(&[byte])?;
+        self.set_control_bits(Data)?;
+        Ok(())
+    }
     /// Used to initialize the display into a know state.
     ///
     /// Normally the display controller's power on reset sets up the display
@@ -155,7 +198,6 @@ where
     /// bus modes.
     fn init(
         &mut self,
-        delay: &mut D,
         fs_mode: Option<FunctionMode>,
         dc_mode: Option<DisplayMode>,
         ems_mode: Option<EntryMode>,
@@ -166,13 +208,14 @@ where
         // Insure display has had time to stabilize if just powered on.
         // This takes between 15 to 40ms depending on supplied voltage.
         // 40ms + 10% fudge factor.
-        delay.delay_us(44000u16);
+        self.delay.delay_us(44000u16);
         // The display can be in any of 3 states:
         let mut cmd = 0x33u8;
-        self.write(cmd, Cmnd, delay)?;
+        self.command(cmd)?;
+        // self.write(cmd, Cmnd, delay)?;
         // Wait at least 4.1ms before issuing next instruction.
         // 4.1ms + 10% fudge factor.
-        delay.delay_us(4510u16);
+        self.delay.delay_us(4510u16);
         // Phase 2.
         match self.data.len() {
             4 => {
@@ -180,49 +223,50 @@ where
                     return Err(IncorrectDataLen);
                 }
                 cmd = 0x32;
-                self.write(cmd, Cmnd, delay)?;
+                self.command(cmd)?;
+                // self.write(cmd, Cmnd, delay)?;
                 // Wait at least 100us before sending next command.
                 // 100us + 10% fudge factor.
-                delay.delay_us(110u16);
+                self.delay.delay_us(110u16);
             }
             8 => {
                 cmd = 0x33;
-                self.write(cmd, Cmnd, delay)?;
+                self.command(cmd)?;
+                // self.write(cmd, Cmnd, delay)?;
                 // Wait at least 100us before sending next command.
                 // 100us + 10% fudge factor.
-                delay.delay_us(110u16);
+                self.delay.delay_us(110u16);
             }
             _ => {
                 return Err(IncorrectDataLen);
             }
         }
-        self.function_set(&fs, delay)?;
-        self.display_control(&dc, delay)?;
-        self.entry_mode_set(&ems, delay)?;
-        self.clear_display(delay)?;
+        self.function_set(&fs)?;
+        self.display_control(&dc)?;
+        self.entry_mode_set(&ems)?;
+        self.clear_display()?;
         Ok(())
     }
 }
 
-impl<RS, EN, DP> GpioDriver<RS, EN, DP>
+impl<RS, EN, DP, D> GpioDriver<RS, EN, DP, D>
 where
     RS: OutputPin,
     EN: OutputPin,
     DP: OutputPin,
+    D: DelayUs<u16>,
 {
-    fn enable_bit_toggle<D>(&mut self, delay: &mut D) -> Result
-    where
-        D: DelayUs<u16>,
+    fn enable_bit_toggle(&mut self) -> Result
     {
         self.e.set_low().map_err(|_| SetOutputPin("enable"))?;
         // Give other pins some setup time before `en` toggle.
-        delay.delay_us(1u16);
+        self.delay.delay_us(1u16);
         self.e.set_high().map_err(|_| SetOutputPin("enable"))?;
         // Minimum time is ~1us but give it a little extra to ensure it is seen.
-        delay.delay_us(1u16);
+        self.delay.delay_us(1u16);
         self.e.set_low().map_err(|_| SetOutputPin("enable"))?;
         // Given a little time to ensure low state is seen.
-        delay.delay_us(1u16);
+        self.delay.delay_us(1u16);
         Ok(())
     }
     fn set_control_bits(&mut self, ctrl: RegisterSelect) -> Result {
