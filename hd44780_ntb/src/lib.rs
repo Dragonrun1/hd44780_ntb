@@ -25,8 +25,8 @@
 
 #[macro_use]
 extern crate bitflags;
-#[macro_use]
-extern crate derive_builder;
+// #[macro_use]
+// extern crate derive_builder;
 
 mod cmd;
 mod driver;
@@ -35,7 +35,8 @@ mod write;
 
 pub use crate::cmd::HD44780;
 pub use crate::cmd::{DisplayMode, EntryMode, FunctionMode, ShiftMode};
-pub use crate::driver::gpio_driver::{GpioDriver, GpioDriverBuilder};
+// pub use crate::driver::gpio_driver::{GpioDriver, GpioDriverBuilder};
+pub use crate::driver::gpio_driver::GpioDriver;
 pub use crate::error::{HdError, Result};
 pub use crate::write::Write;
 /// Normal wait for commands to finish.
