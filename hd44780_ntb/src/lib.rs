@@ -19,10 +19,14 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+//! Provides a complete HD44780 compatible command set and supporting code.
+//!
+//! This is meant as a low level hardware non-text buffer interface for drivers.
 
 #[macro_use]
 extern crate bitflags;
-// extern crate sysfs_gpio;
+#[macro_use]
+extern crate derive_builder;
 
 mod cmd;
 mod driver;
@@ -31,7 +35,7 @@ mod write;
 
 pub use crate::cmd::HD44780;
 pub use crate::cmd::{DisplayMode, EntryMode, FunctionMode, ShiftMode};
-pub use crate::driver::gpio_driver::GpioDriver;
+pub use crate::driver::gpio_driver::{GpioDriver, GpioDriverBuilder};
 pub use crate::error::{HdError, Result};
 pub use crate::write::Write;
 /// Normal wait for commands to finish.

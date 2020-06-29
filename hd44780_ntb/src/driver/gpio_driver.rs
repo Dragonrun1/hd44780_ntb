@@ -24,13 +24,12 @@
 //! This is a very simple blocking bit-bang way of doing things which is
 //! commonly used with many micro-controllers.
 
+use crate::cmd::HD44780;
+use crate::error::HdError::{InvalidDataBusLen, SetOutputPin};
+use crate::write::RegisterSelect::{self, Cmnd, Data};
+use crate::{DisplayMode, EntryMode, FunctionMode, Result};
 use embedded_hal::blocking::delay::DelayUs;
 use embedded_hal::digital::v2::OutputPin;
-use crate::{DisplayMode, EntryMode, FunctionMode, Result};
-use crate::cmd::HD44780;
-use crate::error::HdError::{IncorrectDataLen, SetOutputPin};
-// use crate::write::{RegisterSelect, RegisterSelect::Cmnd, Write};
-use crate::write::RegisterSelect::{self, Cmnd, Data};
 use std::io::Write;
 
 /// This is the driver used for direct GPIO pin connected HD44780 displays.
@@ -48,10 +47,13 @@ use std::io::Write;
 /// forcing the display into `Write` mode at all times.
 ///
 /// The driver can be switched between 4 and 8 bit (pin) interface by just
-/// changing the number of pins given in `data` parameter to the
-/// [new()](GpioDriver::new())
+/// changing the number of pins given in `data` parameter to the [new()]
 /// function when creating a new instance.
-#[derive(Debug)]
+///
+/// [new()]: #method.new
+///
+#[derive(Builder, Debug)]
+#[builder(pattern = "owned")]
 pub struct GpioDriver<RS, EN, DP, D>
 where
     RS: OutputPin,
@@ -90,15 +92,12 @@ where
     ///
     /// # Examples
     /// For examples of using the driver in both 4 and 8 bit modes have look at
-    /// the
-    /// [Raspberry Pi 4 bit](../../../../../../examples/rpi4bit/main.rs)
-    /// and
-    /// [Raspberry Pi 8 bit](../../../../../../examples/rpi8bit/main.rs)
-    /// examples.
-    pub fn new(rs: RS, e: EN, data: Vec<DP>, delay: D) -> GpioDriver<RS, EN, DP, D>
-// where
-    //     P: &'a mut Vec<&'a mut DP>,
-    {
+    /// the [Raspberry Pi 4 bit] and [Raspberry Pi 8 bit] examples.
+    ///
+    /// [Raspberry Pi 4 bit]: ../../../../examples/rpi4bit/main.rs
+    /// [Raspberry Pi 8 bit]: ../../../../examples/rpi8bit/main.rs
+    ///
+    pub fn new(rs: RS, e: EN, data: Vec<DP>, delay: D) -> GpioDriver<RS, EN, DP, D> {
         GpioDriver {
             rs,
             e,
@@ -107,155 +106,12 @@ where
             delay,
         }
     }
-}
-
-impl<RS, EN, DP, D> Write for GpioDriver<RS, EN, DP, D>
-where
-    RS: OutputPin,
-    EN: OutputPin,
-    DP: OutputPin,
-    D: DelayUs<u16>,
-{
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        for byte in buf {
-            match self.data.len() {
-                4 => {
-                    let nibble = (byte & 0b1111_0000u8) >> 4;
-                    Self::set_bus_bits(nibble, &mut self.data[..])?;
-                    self.enable_bit_toggle()?;
-                }
-                8 => {
-                    // Nothing special needs to be done for 8 bit bus.
-                }
-                _ => return Err(IncorrectDataLen.into()),
-            }
-            // Write lower nibble or full byte as needed.
-            Self::set_bus_bits(*byte, &mut self.data[..])?;
-            self.enable_bit_toggle()?;
-        }
-        Ok(buf.len())
-    }
-    fn flush(&mut self) -> std::io::Result<()> {
-        Ok(())
-    }
-}
-
-// impl<RS, EN, DP, D> Write<D> for GpioDriver<RS, EN, DP, D>
-// where
-//     RS: OutputPin,
-//     EN: OutputPin,
-//     DP: OutputPin,
-//     D: DelayUs<u16>,
-// {
-//     fn write(&mut self, byte: u8, ctrl: RegisterSelect, delay: &mut D) -> Result {
-//         self.set_control_bits(ctrl)?;
-//         match self.data.len() {
-//             4 => {
-//                 let nibble = (byte & 0b1111_0000u8) >> 4;
-//                 Self::set_bus_bits(nibble, &mut self.data[..])?;
-//                 self.enable_bit_toggle(delay)?;
-//             }
-//             8 => {
-//                 // Nothing special needs to be done for 8 bit bus.
-//             }
-//             _ => return Err(IncorrectDataLen),
-//         }
-//         // Write lower nibble or full byte as needed.
-//         Self::set_bus_bits(byte, &mut self.data[..])?;
-//         self.enable_bit_toggle(delay)?;
-//         Ok(())
-//     }
-// }
-
-impl<RS, EN, DP, D> HD44780 for GpioDriver<RS, EN, DP, D>
-where
-    RS: OutputPin,
-    EN: OutputPin,
-    DP: OutputPin,
-    D: DelayUs<u16>,
-{
-    fn command(&mut self, byte: u8) -> Result {
-        self.set_control_bits(Cmnd)?;
-        self.write(&[byte])?;
-        self.set_control_bits(Data)?;
-        Ok(())
-    }
-    /// Used to initialize the display into a know state.
-    ///
-    /// Normally the display controller's power on reset sets up the display
-    /// into a known state.
-    /// In cases where the reset hasn't done so correctly or another program has
-    /// left the display in an unknown state this method can be used to get the
-    /// display into a known state.
-    /// This method can also be used to switch between 4 and 8 bit (pin) data
-    /// bus modes.
-    fn init(
-        &mut self,
-        fs_mode: Option<FunctionMode>,
-        dc_mode: Option<DisplayMode>,
-        ems_mode: Option<EntryMode>,
-    ) -> Result {
-        let fs = fs_mode.unwrap_or_default();
-        let dc = dc_mode.unwrap_or_default();
-        let ems = ems_mode.unwrap_or_default();
-        // Insure display has had time to stabilize if just powered on.
-        // This takes between 15 to 40ms depending on supplied voltage.
-        // 40ms + 10% fudge factor.
-        self.delay.delay_us(44000u16);
-        // The display can be in any of 3 states:
-        let mut cmd = 0x33u8;
-        self.command(cmd)?;
-        // self.write(cmd, Cmnd, delay)?;
-        // Wait at least 4.1ms before issuing next instruction.
-        // 4.1ms + 10% fudge factor.
-        self.delay.delay_us(4510u16);
-        // Phase 2.
-        match self.data.len() {
-            4 => {
-                if fs.contains(FunctionMode::BITS_8) {
-                    return Err(IncorrectDataLen);
-                }
-                cmd = 0x32;
-                self.command(cmd)?;
-                // self.write(cmd, Cmnd, delay)?;
-                // Wait at least 100us before sending next command.
-                // 100us + 10% fudge factor.
-                self.delay.delay_us(110u16);
-            }
-            8 => {
-                cmd = 0x33;
-                self.command(cmd)?;
-                // self.write(cmd, Cmnd, delay)?;
-                // Wait at least 100us before sending next command.
-                // 100us + 10% fudge factor.
-                self.delay.delay_us(110u16);
-            }
-            _ => {
-                return Err(IncorrectDataLen);
-            }
-        }
-        self.function_set(&fs)?;
-        self.display_control(&dc)?;
-        self.entry_mode_set(&ems)?;
-        self.clear_display()?;
-        Ok(())
-    }
-}
-
-impl<RS, EN, DP, D> GpioDriver<RS, EN, DP, D>
-where
-    RS: OutputPin,
-    EN: OutputPin,
-    DP: OutputPin,
-    D: DelayUs<u16>,
-{
-    fn enable_bit_toggle(&mut self) -> Result
-    {
+    fn enable_bit_toggle(&mut self) -> Result {
         self.e.set_low().map_err(|_| SetOutputPin("enable"))?;
         // Give other pins some setup time before `en` toggle.
         self.delay.delay_us(1u16);
         self.e.set_high().map_err(|_| SetOutputPin("enable"))?;
-        // Minimum time is ~1us but give it a little extra to ensure it is seen.
+        // Minimum time is approximately 1µs.
         self.delay.delay_us(1u16);
         self.e.set_low().map_err(|_| SetOutputPin("enable"))?;
         // Given a little time to ensure low state is seen.
@@ -289,6 +145,125 @@ where
             }
             mask <<= 1;
         }
+        Ok(())
+    }
+    fn write_byte(&mut self, byte: u8) -> Result {
+        match self.data.len() {
+            4 => {
+                let nibble = (byte & 0b1111_0000u8) >> 4;
+                Self::set_bus_bits(nibble, &mut self.data[..])?;
+                self.enable_bit_toggle()?;
+            }
+            8 => {
+                // Nothing special needs to be done for 8 bit bus.
+            }
+            _ => return Err(InvalidDataBusLen.into()),
+        }
+        // Write lower nibble or full byte as needed.
+        Self::set_bus_bits(byte, &mut self.data[..])?;
+        self.enable_bit_toggle()
+    }
+    const MAX_WRITE_LENGTH: usize = 80;
+}
+
+impl<RS, EN, DP, D> HD44780 for GpioDriver<RS, EN, DP, D>
+where
+    RS: OutputPin,
+    EN: OutputPin,
+    DP: OutputPin,
+    D: DelayUs<u16>,
+{
+    const COMMAND_DELAY: u16 = 41;
+    fn command(&mut self, byte: u8, delay: u16) -> Result {
+        // Switch to command mode.
+        self.set_control_bits(Cmnd)?;
+        // Send command.
+        self.write_byte(byte)?;
+        // Switch back to data mode.
+        self.set_control_bits(Data)?;
+        // Given HD44780 time to process command before sending anything else.
+        self.delay.delay_us(delay);
+        Ok(())
+    }
+    fn init<FSM, DCM, EMSM>(&mut self, fs_mode: FSM, dc_mode: DCM, ems_mode: EMSM) -> Result
+    where
+        FSM: Into<Option<FunctionMode>>,
+        DCM: Into<Option<DisplayMode>>,
+        EMSM: Into<Option<EntryMode>>,
+    {
+        let fs = fs_mode.into().unwrap_or_default();
+        let dc = dc_mode.into().unwrap_or_default();
+        let ems = ems_mode.into().unwrap_or_default();
+        // Insure display has had time to stabilize if just powered on.
+        // This takes between 15 to 40ms depending on supplied voltage.
+        // 1000 times the command delay should be enough.
+        let mut delay = Self::COMMAND_DELAY * 1000;
+        self.delay.delay_us(delay);
+        // The display can be in any of 3 states at this point and the follow
+        // sequence of commands should get it into a known and usable state.
+        // ## Phase 1 ##
+        let mut cmd = 0x33u8;
+        // Wait at least 4.1ms before issuing next instruction.
+        // 100 times command delay should work.
+        delay = Self::COMMAND_DELAY * 100;
+        self.command(cmd, delay)?;
+        // ## Phase 2 ##
+        match self.data.len() {
+            4 => {
+                if fs.contains(FunctionMode::BITS_8) {
+                    return Err(InvalidDataBusLen);
+                }
+                cmd = 0x32;
+            }
+            8 => {
+                cmd = 0x33;
+            }
+            _ => {
+                return Err(InvalidDataBusLen);
+            }
+        }
+        // Wait at least 100us before sending last special initialization command.
+        // 3 times command delay should work.
+        delay = Self::COMMAND_DELAY * 3;
+        self.command(cmd, delay)?;
+        // ## Final Phase ##
+        // Now the display is in a know state and the additional regular
+        // commands can be sent to it.
+        self.function_set(&fs)?;
+        self.display_control(&dc)?;
+        self.entry_mode_set(&ems)?;
+        self.clear_display()?;
+        Ok(())
+    }
+}
+
+impl<RS, EN, DP, D> Write for GpioDriver<RS, EN, DP, D>
+where
+    RS: OutputPin,
+    EN: OutputPin,
+    DP: OutputPin,
+    D: DelayUs<u16>,
+{
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let mut result = buf.len();
+        while !buf.is_empty() {
+            // This check is very crude because of the following unknowns:
+            // Writing to CG RAM or DD RAM.
+            // Current starting position within the range of addresses.
+            if Self::MAX_WRITE_LENGTH >= buf.len() {
+                for byte in buf {
+                    self.write_byte(*byte)?;
+                }
+            } else {
+                for byte in &buf[..Self::MAX_WRITE_LENGTH] {
+                    self.write_byte(*byte)?;
+                }
+                result = buf.len() - Self::MAX_WRITE_LENGTH;
+            }
+        }
+        Ok(result)
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
     }
 }

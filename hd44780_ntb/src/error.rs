@@ -27,12 +27,16 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum HdError {
     /// Used if data bus given is not 4 or 8 bits long.
-    #[error("Data must be 4 or 8 OutputPins")]
-    IncorrectDataLen,
+    #[error("Data bus must be 4 or 8 bits")]
+    InvalidDataBusLen,
+    /// Used by [function_set()] for un-supported mode setting.
+    #[error("Can NOT use 5x10 font with 2 line mode")]
+    InvalidLineAndFontMode,
     /// Used if given output GPIO pin can not be set.
     #[error("Could not set {0} output pin")]
     SetOutputPin(&'static str),
-    #[error("Write failed")]
+    /// Used if under-laying IO Error happens.
+    #[error("IO write failed")]
     Write(#[from] std::io::Error),
 }
 
