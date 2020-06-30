@@ -107,7 +107,11 @@ fn destroy() -> Result<()> {
 fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
     for _ in 0..5 {
         lcd.clear_display().context("Failed to clear the display")?;
-        let mut message = "May the Rust ...\n... be with you!";
+        let mut message = "May the Rust ...";
+        println!("{}", message);
+        lcd.write(message.as_ref())
+            .context("Failed to write string")?;
+        message = "... be with you!";
         println!("{}", message);
         lcd.write(message.as_ref())
             .context("Failed to write string")?;

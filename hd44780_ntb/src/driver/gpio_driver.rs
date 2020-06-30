@@ -179,10 +179,10 @@ where
         self.set_control_bits(Cmnd)?;
         // Send command.
         self.write_byte(byte)?;
-        // Switch back to data mode.
-        self.set_control_bits(Data)?;
         // Given HD44780 time to process command before sending anything else.
         self.delay.delay_us(delay);
+        // Switch back to data mode.
+        self.set_control_bits(Data)?;
         Ok(())
     }
     fn init<FSM, DCM, EMSM>(&mut self, fs_mode: FSM, dc_mode: DCM, ems_mode: EMSM) -> Result
@@ -205,7 +205,7 @@ where
         let mut cmd = 0x33u8;
         // Wait at least 4.1ms before issuing next instruction.
         // 100 times command delay should work.
-        delay = Self::COMMAND_DELAY * 100;
+        delay = Self::COMMAND_DELAY * 200;
         self.command(cmd, delay)?;
         // ## Phase 2 ##
         match self.data.len() {
