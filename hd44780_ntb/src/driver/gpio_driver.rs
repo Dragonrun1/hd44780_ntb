@@ -229,9 +229,9 @@ where
         // ## Final Phase ##
         // Now the display is in a know state and the additional regular
         // commands can be sent to it.
-        self.function_set(&fs)?;
-        self.display_control(&dc)?;
-        self.entry_mode_set(&ems)?;
+        self.function_set(fs)?;
+        self.display_control(dc)?;
+        self.entry_mode_set(ems)?;
         self.clear_display()?;
         Ok(())
     }
