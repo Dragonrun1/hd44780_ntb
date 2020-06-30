@@ -246,7 +246,7 @@ where
 {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let mut result = buf.len();
-        while !buf.is_empty() {
+        if !buf.is_empty() {
             // This check is very crude because of the following unknowns:
             // Writing to CG RAM or DD RAM.
             // Current starting position within the range of addresses.
