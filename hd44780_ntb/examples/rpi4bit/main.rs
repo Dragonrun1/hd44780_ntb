@@ -102,16 +102,19 @@ fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
         lcd.clear_display().context("Failed to clear the display")?;
         let mut message = b"May the Rust ...";
         println!("{:?}", message);
+        println!("{:?}", message.len());
         lcd.write(message).context("Failed to write string")?;
         lcd.set_dd_ram_addr(0x40)
             .context("Failed to move to second line")?;
         message = b"... be with you!";
         println!("{:?}", message);
+        println!("{:?}", message.len());
         lcd.write(message).context("Failed to write string")?;
         sleep(Duration::from_secs(MESSAGE_DELAY));
         lcd.clear_display().context("Failed to clear the display")?;
         message = b"Ferris says \"Hi\"";
         println!("{:?}", message);
+        println!("{:?}", message.len());
         lcd.write(message).context("Failed to write string")?;
         sleep(Duration::from_secs(MESSAGE_DELAY));
     }
