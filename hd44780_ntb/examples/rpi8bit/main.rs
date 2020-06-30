@@ -111,6 +111,8 @@ fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
         println!("{}", message);
         lcd.write(message.as_ref())
             .context("Failed to write string")?;
+        lcd.set_dd_ram_addr(&0x40)
+            .context("Failed to move to second line")?;
         message = "... be with you!";
         println!("{}", message);
         lcd.write(message.as_ref())
