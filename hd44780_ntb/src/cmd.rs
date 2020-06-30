@@ -124,7 +124,7 @@ pub trait HD44780: Write {
     /// let sm = ShiftMode::CURSOR_MOVE | ShiftMode::MOVE_RIGHT
     /// lcd.cursor_shift(sm)?;
     /// ```
-    fn cursor_shift(&mut self, mode: &ShiftMode) -> Result {
+    fn cursor_shift(&mut self, mode: ShiftMode) -> Result {
         let cmd: u8 = Self::CURSOR_SHIFT | mode.bits();
         self.command(cmd, Self::COMMAND_DELAY)
     }
@@ -139,7 +139,7 @@ pub trait HD44780: Write {
     /// let dm = DisplayMode::DISPLAY_ON | DisplayMode::CURSOR_ON;
     /// lcd.display_control(dm)?;
     /// ```
-    fn display_control(&mut self, mode: &DisplayMode) -> Result {
+    fn display_control(&mut self, mode: DisplayMode) -> Result {
         let cmd = Self::DISPLAY_CONTROL | mode.bits();
         self.command(cmd, Self::COMMAND_DELAY)
     }
@@ -154,7 +154,7 @@ pub trait HD44780: Write {
     /// // EntryMode::default() == EntryMode::ENTRY_SHIFT_INCREMENT
     /// lcd.entry_mode_set(EntryMode::default())?;
     /// ```
-    fn entry_mode_set(&mut self, mode: &EntryMode) -> Result {
+    fn entry_mode_set(&mut self, mode: EntryMode) -> Result {
         let cmd: u8 = Self::ENTRY_MODE_SET | mode.bits();
         self.command(cmd, Self::COMMAND_DELAY)
     }
@@ -175,7 +175,7 @@ pub trait HD44780: Write {
     /// # Errors
     /// Returns an error when 2 lines and 5x10 font modes are selected together
     /// as that is not supported by the hardware.
-    fn function_set(&mut self, mode: &FunctionMode) -> Result {
+    fn function_set(&mut self, mode: FunctionMode) -> Result {
         if mode.contains(FunctionMode::LINES_2) && mode.contains(FunctionMode::DOTS_5X10) {
             return Err(InvalidLineAndFontMode);
         }
@@ -212,7 +212,7 @@ pub trait HD44780: Write {
     /// let location = 0x09;
     /// lcd.set_cg_ram_addr(location)?;
     /// ```
-    fn set_cg_ram_addr(&mut self, address: &u8) -> Result {
+    fn set_cg_ram_addr(&mut self, address: u8) -> Result {
         let address = address & 0b0011_1111;
         let cmd: u8 = Self::SET_CG_RAM_ADDR | address;
         self.command(cmd, Self::COMMAND_DELAY)
@@ -229,7 +229,7 @@ pub trait HD44780: Write {
     /// let location = 0x40;
     /// lcd.set_dd_ram_addr(location)?;
     /// ```
-    fn set_dd_ram_addr(&mut self, address: &u8) -> Result {
+    fn set_dd_ram_addr(&mut self, address: u8) -> Result {
         let address = address & 0b0111_1111;
         let cmd: u8 = Self::SET_DD_RAM_ADDR | address;
         self.command(cmd, Self::COMMAND_DELAY)
