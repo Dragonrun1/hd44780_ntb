@@ -24,6 +24,9 @@
 //! The example was written assuming Raspbian but should work with other Linuxes
 //! with little or no change.
 //!
+//! The example assumes a 16x2 display but should work with any two line display
+//! just some of the display move stuff might not look right on other sizes.
+//!
 //! # Examples
 //! To build the example use:
 //! ```sh, no_run
@@ -119,23 +122,24 @@ fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
         // Clear the display again.
         lcd.clear_display().context("Failed to clear the display")?;
         // Write the another longer message message.
-        message = "This is a long line that scrolling";
+        message = "Watch me move right and then left!";
+        let remainder = message.len() - 16;
         println!("{}", message);
         lcd.write(message.as_bytes())
             .context("Failed to write string")?;
-        // Wait a couple seconds so first part of message can be seen.
-        sleep(Duration::from_secs(MESSAGE_DELAY));
-        // Scroll the display left.
-        for _ in 0..18 {
+        // Wait a moment so first part of message can be seen.
+        sleep(Duration::from_millis(500));
+        // Move the display left.
+        for _ in 0..remainder {
             let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_LEFT;
             lcd.cursor_shift(sm).context("Failed to shift display")?;
-            // Short pause between shifts.
+            // Short pause between moves.
             sleep(Duration::from_millis(500));
         }
         // Wait a couple seconds so message can be seen.
         sleep(Duration::from_secs(MESSAGE_DELAY));
-        // Scroll the display back right.
-        for _ in 0..18 {
+        // Move the display back right.
+        for _ in 0..remainder {
             let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_RIGHT;
             lcd.cursor_shift(sm).context("Failed to shift display")?;
             // Short pause between shifts.
