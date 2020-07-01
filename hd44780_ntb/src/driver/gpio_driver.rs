@@ -26,7 +26,6 @@
 
 use crate::cmd::HD44780;
 use crate::error::HdError::{InvalidDataBusLen, SetOutputPin};
-use crate::write::RegisterSelect::{self, Cmnd, Data};
 use crate::{DisplayMode, EntryMode, FunctionMode, Result};
 use embedded_hal::blocking::delay::DelayUs;
 use embedded_hal::digital::v2::OutputPin;
@@ -176,13 +175,13 @@ where
     const COMMAND_DELAY: u16 = 41;
     fn command(&mut self, byte: u8, delay: u16) -> Result {
         // Switch to command mode.
-        self.set_control_bits(Cmnd)?;
+        self.set_control_bits(RegisterSelect::Cmnd)?;
         // Send command.
         self.write_byte(byte)?;
         // Given HD44780 time to process command before sending anything else.
         self.delay.delay_us(delay);
         // Switch back to data mode.
-        self.set_control_bits(Data)?;
+        self.set_control_bits(RegisterSelect::Data)?;
         Ok(())
     }
     fn init<FSM, DCM, EMSM>(&mut self, fs_mode: FSM, dc_mode: DCM, ems_mode: EMSM) -> Result
@@ -265,5 +264,19 @@ where
     }
     fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
+    }
+}
+
+/// Use
+#[repr(u8)]
+#[derive(Copy, Clone, Debug)]
+pub enum RegisterSelect {
+    Cmnd = 0u8,
+    Data = 1u8,
+}
+
+impl Default for RegisterSelect {
+    fn default() -> Self {
+        RegisterSelect::Data
     }
 }
