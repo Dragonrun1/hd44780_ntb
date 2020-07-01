@@ -98,7 +98,7 @@ fn destroy() -> Result<()> {
 /// Main display loop for messages.
 //noinspection DuplicatedCode
 fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
-    for _ in 0..5 {
+    for _ in 0..3 {
         // First clear the display.
         lcd.clear_display().context("Failed to clear the display")?;
         // Write first line.
@@ -130,7 +130,7 @@ fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
             let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_LEFT;
             lcd.cursor_shift(sm).context("Failed to shift display")?;
             // Short pause between shifts.
-            sleep(Duration::from_millis(250));
+            sleep(Duration::from_millis(500));
         }
         // Wait a couple seconds so message can be seen.
         sleep(Duration::from_secs(MESSAGE_DELAY));
@@ -139,7 +139,7 @@ fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
             let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_RIGHT;
             lcd.cursor_shift(sm).context("Failed to shift display")?;
             // Short pause between shifts.
-            sleep(Duration::from_millis(250));
+            sleep(Duration::from_millis(500));
         }
         // Wait a couple seconds so message can be seen.
         sleep(Duration::from_secs(MESSAGE_DELAY));
