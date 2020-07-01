@@ -24,6 +24,9 @@
 //! The example was written assuming Raspbian but should work with other Linuxes
 //! with little or no change.
 //!
+//! The example assumes a 16x2 display but should work with any two line display
+//! just some of the display move stuff might not look right on other sizes.
+//!
 //! # Examples
 //! To build the example use:
 //! ```sh, no_run
@@ -35,7 +38,7 @@
 //! ```
 
 use anyhow::{Context, Result};
-use hd44780_ntb::{DisplayMode, EntryMode, FunctionMode, GpioDriver, HD44780};
+use hd44780_ntb::{DisplayMode, EntryMode, FunctionMode, GpioDriver, ShiftMode, HD44780};
 use linux_embedded_hal::sysfs_gpio::Direction;
 use linux_embedded_hal::{Delay, Pin};
 use std::io::Write;
@@ -105,24 +108,60 @@ fn destroy() -> Result<()> {
 /// Main display loop for messages.
 //noinspection DuplicatedCode
 fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
-    for _ in 0..5 {
+    for _ in 0..3 {
+        // First clear the display.
         lcd.clear_display().context("Failed to clear the display")?;
+        // Write first line.
         let mut message = "May the Rust ...";
         println!("{}", message);
-        lcd.write(message.as_ref())
+        lcd.write(message.as_bytes())
             .context("Failed to write string")?;
-        lcd.set_dd_ram_addr(&0x40)
+        // Move to second line.
+        lcd.set_dd_ram_addr(0x40)
             .context("Failed to move to second line")?;
+        // Write the second line.
         message = "... be with you!";
         println!("{}", message);
-        lcd.write(message.as_ref())
+        lcd.write(message.as_bytes())
             .context("Failed to write string")?;
+        // Wait a couple seconds so message can be seen.
         sleep(Duration::from_secs(MESSAGE_DELAY));
+        // Clear the display again.
         lcd.clear_display().context("Failed to clear the display")?;
+        // Write the another longer message message.
+        message = "Watch me move right and then left!";
+        let remainder = message.len() - 16;
+        println!("{}", message);
+        lcd.write(message.as_bytes())
+            .context("Failed to write string")?;
+        // Wait a moment so first part of message can be seen.
+        sleep(Duration::from_millis(500));
+        // Move the display left.
+        for _ in 0..remainder {
+            let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_LEFT;
+            lcd.cursor_shift(sm).context("Failed to shift display")?;
+            // Short pause between moves.
+            sleep(Duration::from_millis(500));
+        }
+        // Wait a couple seconds so message can be seen.
+        sleep(Duration::from_secs(MESSAGE_DELAY));
+        // Move the display back right.
+        for _ in 0..remainder {
+            let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_RIGHT;
+            lcd.cursor_shift(sm).context("Failed to shift display")?;
+            // Short pause between shifts.
+            sleep(Duration::from_millis(500));
+        }
+        // Wait a couple seconds so message can be seen.
+        sleep(Duration::from_secs(MESSAGE_DELAY));
+        // Clear the display again.
+        lcd.clear_display().context("Failed to clear the display")?;
+        // Write the final message.
         message = "Ferris says \"Hi\"";
         println!("{}", message);
-        lcd.write(message.as_ref())
+        lcd.write(message.as_bytes())
             .context("Failed to write string")?;
+        // Wait a couple seconds so message can be seen.
         sleep(Duration::from_secs(MESSAGE_DELAY));
     }
     Ok(())
