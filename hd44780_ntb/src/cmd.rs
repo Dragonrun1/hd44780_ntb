@@ -33,7 +33,9 @@ use std::io::Write;
 ///
 /// Refer to Hitachi HD44780 datasheet for more information.
 pub trait HD44780: Write {
+    //
     // ## Per driver required stuff ##
+    //
     /// Delay time constant used to ensure HD44780 can finish processing command.
     ///
     /// Minimum should be > 37µs @ 270KHz per HD44780 datasheet.
@@ -97,6 +99,9 @@ pub trait HD44780: Write {
         FSM: Into<Option<FunctionMode>>,
         DCM: Into<Option<DisplayMode>>,
         EMSM: Into<Option<EntryMode>>;
+    //
+    // ## Shouldn't need to change these in driver implementations. ##
+    //
     /// Clear the display.
     ///
     /// From HD44780 datasheet:

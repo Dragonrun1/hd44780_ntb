@@ -35,7 +35,7 @@
 //! ```
 
 use anyhow::{Context, Result};
-use hd44780_ntb::{DisplayMode, EntryMode, FunctionMode, GpioDriver, HD44780};
+use hd44780_ntb::{DisplayMode, EntryMode, FunctionMode, GpioDriver, ShiftMode, HD44780};
 use linux_embedded_hal::sysfs_gpio::Direction;
 use linux_embedded_hal::{Delay, Pin};
 use std::io::Write;
@@ -99,23 +99,56 @@ fn destroy() -> Result<()> {
 //noinspection DuplicatedCode
 fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
     for _ in 0..5 {
+        // First clear the display.
         lcd.clear_display().context("Failed to clear the display")?;
+        // Write first line.
         let mut message = "May the Rust ...";
         println!("{}", message);
         lcd.write(message.as_bytes())
             .context("Failed to write string")?;
+        // Move to second line.
         lcd.set_dd_ram_addr(0x40)
             .context("Failed to move to second line")?;
+        // Write the second line.
         message = "... be with you!";
         println!("{}", message);
         lcd.write(message.as_bytes())
             .context("Failed to write string")?;
+        // Wait a couple seconds so message can be seen.
         sleep(Duration::from_secs(MESSAGE_DELAY));
+        // Clear the display again.
         lcd.clear_display().context("Failed to clear the display")?;
+        // Write the another longer message message.
+        message = "This is a long line that scrolling";
+        println!("{}", message);
+        lcd.write(message.as_bytes())
+            .context("Failed to write string")?;
+        // Wait a couple seconds so first part of message can be seen.
+        sleep(Duration::from_secs(MESSAGE_DELAY));
+        // Scroll the message right.
+        for _ in 0..18 {
+            let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_RIGHT;
+            lcd.cursor_shift(sm).context("Failed to shift display")?;
+            // Short pause between shifts.
+            sleep(Duration::from_millis(100));
+        }
+        // Wait a couple seconds so message can be seen.
+        sleep(Duration::from_secs(MESSAGE_DELAY));
+        // Scroll the message back left.
+        for _ in 0..18 {
+            let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_LEFT;
+            lcd.cursor_shift(sm).context("Failed to shift display")?;
+            // Short pause between shifts.
+            sleep(Duration::from_millis(100));
+        }
+        // Wait a couple seconds so message can be seen.
+        sleep(Duration::from_secs(MESSAGE_DELAY));
+        // Write the final message.
         message = "Ferris says \"Hi\"";
         println!("{}", message);
         lcd.write(message.as_bytes())
             .context("Failed to write string")?;
+        // Wait a couple seconds so message can be seen.
         sleep(Duration::from_secs(MESSAGE_DELAY));
     }
     Ok(())
