@@ -125,24 +125,26 @@ fn display_loop(lcd: &mut GpioDriver<Pin, Pin, Pin, Delay>) -> Result<()> {
             .context("Failed to write string")?;
         // Wait a couple seconds so first part of message can be seen.
         sleep(Duration::from_secs(MESSAGE_DELAY));
-        // Scroll the message right.
-        for _ in 0..18 {
-            let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_RIGHT;
-            lcd.cursor_shift(sm).context("Failed to shift display")?;
-            // Short pause between shifts.
-            sleep(Duration::from_millis(100));
-        }
-        // Wait a couple seconds so message can be seen.
-        sleep(Duration::from_secs(MESSAGE_DELAY));
-        // Scroll the message back left.
+        // Scroll the display left.
         for _ in 0..18 {
             let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_LEFT;
             lcd.cursor_shift(sm).context("Failed to shift display")?;
             // Short pause between shifts.
-            sleep(Duration::from_millis(100));
+            sleep(Duration::from_millis(250));
         }
         // Wait a couple seconds so message can be seen.
         sleep(Duration::from_secs(MESSAGE_DELAY));
+        // Scroll the display back right.
+        for _ in 0..18 {
+            let sm = ShiftMode::DISPLAY_MOVE | ShiftMode::MOVE_RIGHT;
+            lcd.cursor_shift(sm).context("Failed to shift display")?;
+            // Short pause between shifts.
+            sleep(Duration::from_millis(250));
+        }
+        // Wait a couple seconds so message can be seen.
+        sleep(Duration::from_secs(MESSAGE_DELAY));
+        // Clear the display again.
+        lcd.clear_display().context("Failed to clear the display")?;
         // Write the final message.
         message = "Ferris says \"Hi\"";
         println!("{}", message);
