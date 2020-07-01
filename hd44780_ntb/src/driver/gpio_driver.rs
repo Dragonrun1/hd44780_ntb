@@ -205,7 +205,7 @@ where
         let mut cmd = 0x33u8;
         // Wait at least 4.1ms before issuing next instruction.
         // 100 times command delay should work.
-        delay = Self::COMMAND_DELAY * 200;
+        delay = Self::COMMAND_DELAY * 100;
         self.command(cmd, delay)?;
         // ## Phase 2 ##
         match self.data.len() {
