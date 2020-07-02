@@ -52,7 +52,6 @@ use std::io::Write;
 /// [new()]: #method.new
 ///
 #[derive(Debug)]
-// #[builder(pattern = "owned")]
 pub struct GpioDriver<RS, EN, DP, D>
 where
     RS: OutputPin,

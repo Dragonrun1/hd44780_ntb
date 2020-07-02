@@ -25,8 +25,6 @@
 
 #[macro_use]
 extern crate bitflags;
-// #[macro_use]
-// extern crate derive_builder;
 
 mod cmd;
 mod driver;
@@ -34,10 +32,5 @@ mod error;
 
 pub use crate::cmd::HD44780;
 pub use crate::cmd::{DisplayMode, EntryMode, FunctionMode, ShiftMode};
-// pub use crate::driver::gpio_driver::{GpioDriver, GpioDriverBuilder};
 pub use crate::driver::gpio_driver::GpioDriver;
 pub use crate::error::{HdError, Result};
-/// Normal wait for commands to finish.
-/// This is normal 37us at the default 270KHz.
-/// 37us + 10% fudge factor rounded up.
-pub const COMMAND_WAIT: u16 = 41;
