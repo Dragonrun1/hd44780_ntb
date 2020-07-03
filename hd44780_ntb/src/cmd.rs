@@ -269,14 +269,14 @@ bitflags! {
     pub struct EntryMode: u8 {
         const ENTRY_LEFT = 0x02;
         const ENTRY_RIGHT = 0x00;
-        const ENTRY_SHIFT_DECREMENT = 0x00;
-        const ENTRY_SHIFT_INCREMENT = 0x01;
+        const ENTRY_SHIFT_CURSOR = 0x00;
+        const ENTRY_SHIFT_DISPLAY = 0x01;
     }
 }
 
 impl Default for EntryMode {
     fn default() -> Self {
-        EntryMode::ENTRY_RIGHT | EntryMode::ENTRY_SHIFT_INCREMENT
+        EntryMode::ENTRY_LEFT | EntryMode::ENTRY_SHIFT_CURSOR
     }
 }
 

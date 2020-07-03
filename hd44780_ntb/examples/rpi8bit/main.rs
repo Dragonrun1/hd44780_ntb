@@ -69,7 +69,7 @@ fn main() -> Result<()> {
     println!("data length: {}", data.len());
     let mut lcd = GpioDriver::new(rs, e, data, Delay);
     let dc = Some(DisplayMode::DISPLAY_ON);
-    let ems = Some(EntryMode::ENTRY_LEFT | EntryMode::ENTRY_SHIFT_DECREMENT);
+    let ems = Some(EntryMode::ENTRY_LEFT | EntryMode::ENTRY_SHIFT_CURSOR);
     let fm = Some(FunctionMode::LINES_2);
     lcd.init(fm, dc, ems)
         .context("Failed to initialize display instance")?;
