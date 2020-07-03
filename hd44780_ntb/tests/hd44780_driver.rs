@@ -26,7 +26,7 @@ use hd44780_ntb::{FunctionMode, HD44780};
 use spy_driver::SpyDriver;
 
 #[test]
-fn function_set_should_panic_when_2_line_and_5_x_10_font() {
+fn function_set_should_return_error_when_2_line_and_5_x_10_font() {
     let mut sut = SpyDriver::default();
     let fm = FunctionMode::LINES_2 | FunctionMode::DOTS_5X10;
     assert!(sut.function_set(fm).is_err());
