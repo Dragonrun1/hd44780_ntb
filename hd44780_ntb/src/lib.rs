@@ -33,6 +33,5 @@ mod error;
 pub use crate::cmd::HD44780;
 pub use crate::cmd::{DisplayMode, EntryMode, FunctionMode, ShiftMode};
 pub use crate::driver::gpio_driver::GpioDriver;
-#[cfg(profile = "test")]
 pub use crate::driver::spy_driver::{Command, SpyDriver};
 pub use crate::error::{HdError, Result};
