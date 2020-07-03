@@ -252,7 +252,10 @@ pub trait HD44780: Write {
 
 // DisplayMode
 bitflags! {
-    /// Display mode bit flags use by display control command.
+    /// Display mode bit flags used with [display_control()] command.
+    ///
+    /// [display_control()]: trait.HD44780.html#method.display_control
+    ///
     #[derive(Default)]
     pub struct DisplayMode: u8 {
         const BLINK_OFF = 0x00;
@@ -266,6 +269,10 @@ bitflags! {
 
 // EntryMode
 bitflags! {
+    /// Entry mode bit flags used with [entry_mode_set()] command.
+    ///
+    /// [entry_mode_set()]: trait.HD44780.html#method.entry_mode_set
+    ///
     pub struct EntryMode: u8 {
         const ENTRY_LEFT = 0x02;
         const ENTRY_RIGHT = 0x00;
@@ -282,6 +289,10 @@ impl Default for EntryMode {
 
 // FunctionMode
 bitflags! {
+    /// Function mode bit flags used with [function_set()] command.
+    ///
+    /// [function_set()]: trait.HD44780.html#method.function_set
+    ///
     #[derive(Default)]
     pub struct FunctionMode: u8 {
         const BITS_4 = 0x00;
@@ -297,6 +308,10 @@ bitflags! {
 
 // ShiftMode
 bitflags! {
+    /// Shift mode bit flags used with [cursor_shift()] command.
+    ///
+    /// [cursor_shift()]: trait.HD44780.html#method.cursor_shift
+    ///
     pub struct ShiftMode: u8 {
         const CURSOR_MOVE = 0x00;
         const DISPLAY_MOVE = 0x08;
