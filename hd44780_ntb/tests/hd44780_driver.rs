@@ -25,7 +25,7 @@ use hd44780_ntb::{FunctionMode, HD44780};
 
 #[test]
 fn function_set_should_return_error_when_2_line_and_5_x_10_font() {
-    let mut sut = SpyDriver::default();
+    let mut sut = SpyDriver::new();
     let fm = FunctionMode::LINES_2 | FunctionMode::DOTS_5X10;
     assert!(sut.function_set(fm).is_err());
 }
