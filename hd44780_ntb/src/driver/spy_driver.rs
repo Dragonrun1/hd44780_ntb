@@ -26,7 +26,7 @@ use std::io::{Result as IOResult, Write};
 use std::time::Instant;
 
 /// A very basic testing driver that records arguments given for commands and writes.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct SpyDriver {
     /// List of commands sent to driver.
     pub commands: Vec<Command>,
