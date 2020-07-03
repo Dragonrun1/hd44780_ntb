@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use hd44780_ntb::SpyDriver;
-use hd44780_ntb::{FunctionMode, HD44780};
+use hd44780_ntb::{FunctionMode, SpyDriver, HD44780};
 
 #[test]
 fn function_set_should_return_error_when_2_line_and_5_x_10_font() {
