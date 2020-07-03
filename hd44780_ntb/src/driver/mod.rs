@@ -22,4 +22,5 @@
 //! Module for all drivers like GPIO, I2C, SPI, etc.
 
 pub mod gpio_driver;
+#[cfg(profile = "test")]
 pub mod spy_driver;
