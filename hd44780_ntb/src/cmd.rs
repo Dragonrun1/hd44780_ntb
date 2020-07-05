@@ -258,11 +258,17 @@ bitflags! {
     ///
     #[derive(Default)]
     pub struct DisplayMode: u8 {
+        /// Set character blinking off.
         const BLINK_OFF = 0x00;
+        /// Set character blinking on.
         const BLINK_ON = 0x01;
+        /// Set visible cursor off.
         const CURSOR_OFF = 0x00;
+        /// Set visible cursor on.
         const CURSOR_ON = 0x02;
+        /// Set display off.
         const DISPLAY_OFF = 0x00;
+        /// Set display on.
         const DISPLAY_ON = 0x04;
     }
 }
