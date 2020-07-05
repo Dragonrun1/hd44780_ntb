@@ -35,6 +35,9 @@ pub enum HdError {
     /// Used if given output GPIO pin can not be set.
     #[error("Could not set {0} output pin")]
     SetOutputPin(&'static str),
+    /// Used when decoding HD44780 commands.
+    #[error("Could not find command, was given {0}")]
+    UnknownCommand(u8),
     /// Used if under-laying IO Error happens.
     #[error("IO write failed")]
     Write(#[from] std::io::Error),
