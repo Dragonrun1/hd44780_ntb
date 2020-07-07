@@ -161,7 +161,6 @@ where
         Self::set_bus_bits(byte, &mut self.data[..])?;
         self.enable_bit_toggle()
     }
-    const MAX_WRITE_LENGTH: usize = 80;
 }
 
 impl<RS, EN, DP, D> HD44780 for GpioDriver<RS, EN, DP, D>
@@ -243,23 +242,10 @@ where
     D: DelayUs<u16>,
 {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        let mut result = buf.len();
-        if !buf.is_empty() {
-            // This check is very crude because of the following unknowns:
-            // Writing to CG RAM or DD RAM.
-            // Current starting position within the range of addresses.
-            if Self::MAX_WRITE_LENGTH >= buf.len() {
-                for byte in buf {
-                    self.write_byte(*byte)?;
-                }
-            } else {
-                for byte in &buf[..Self::MAX_WRITE_LENGTH] {
-                    self.write_byte(*byte)?;
-                }
-                result = buf.len() - Self::MAX_WRITE_LENGTH;
-            }
+        for byte in buf {
+            self.write_byte(*byte)?;
         }
-        Ok(result)
+        Ok(buf.len())
     }
     fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
