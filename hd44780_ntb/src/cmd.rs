@@ -22,11 +22,8 @@
 //! Contains the HD44780 display controller command set trait and associated
 //! parameter types.
 
-// use crate::write::RegisterSelect::Cmnd;
-// use crate::write::Write;
-use crate::Result;
-// use embedded_hal::blocking::delay::DelayUs;
 use crate::error::HdError::InvalidLineAndFontMode;
+use crate::Result;
 use std::io::Write;
 
 /// Complete command set for HD44780 display controller.
