@@ -76,7 +76,7 @@ where
     ///
     /// The HD44780 display normally has a 16 inline connector.
     ///
-    /// # Arguments
+    /// ## Arguments
     ///
     /// * `rs` - An already setup output GPIO pin that is connected to the
     /// register select input on display.
@@ -88,7 +88,7 @@ where
     ///
     /// The driver assumes that the RW pin
     ///
-    /// # Examples
+    /// ## Examples
     /// For examples of using the driver in both 4 and 8 bit modes have look at
     /// the [Raspberry Pi 4 bit] and [Raspberry Pi 8 bit] examples.
     ///

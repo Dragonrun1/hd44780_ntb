@@ -27,7 +27,7 @@
 //! The example assumes a 16x2 display but should work with any two line display
 //! just some of the display move stuff might not look right on other sizes.
 //!
-//! # Examples
+//! ## Examples
 //! To build the example use:
 //! ```sh, no_run
 //! cargo build --example rpi4bit

@@ -54,7 +54,7 @@ pub trait HD44780: Write {
     /// The implementation of the command set in this trait will use this method
     /// after doing any needed per command processing.
     ///
-    /// # Arguments
+    /// ## Arguments
     /// * `byte` - The command being written to HD44780 hardware.
     /// * `delay` - The expected delay(µs) after sending command so hardware has
     /// time to process it.
@@ -104,7 +104,7 @@ pub trait HD44780: Write {
     /// From HD44780 datasheet:
     /// Clears entire display and sets DD RAM address 0 in address counter.
     ///
-    /// # Examples
+    /// ## Examples
     /// ```edition2018,ignore
     /// lcd.clear_display()?;
     /// ```
@@ -120,7 +120,7 @@ pub trait HD44780: Write {
     /// From HD44780 datasheet:
     /// Moves cursor and shifts display without changing DD RAM contents.
     ///
-    /// # Examples
+    /// ## Examples
     /// ```edition2018,ignore
     /// // The same as `ShiftMode::default()`
     /// let sm = ShiftMode::CURSOR_MOVE | ShiftMode::MOVE_RIGHT
@@ -136,7 +136,7 @@ pub trait HD44780: Write {
     /// Sets entire display on/off,cursor on/off , and blinking of cursor
     /// position character.
     ///
-    /// # Examples
+    /// ## Examples
     /// ```edition2018,ignore
     /// let dm = DisplayMode::DISPLAY_ON | DisplayMode::CURSOR_ON;
     /// lcd.display_control(dm)?;
@@ -151,7 +151,7 @@ pub trait HD44780: Write {
     /// Sets cursor move direction and specifies display shift.
     /// These operations are performed during data write and read.
     ///
-    /// # Examples
+    /// ## Examples
     /// ```edition2018,ignore
     /// // EntryMode::default() == EntryMode::ENTRY_SHIFT_INCREMENT
     /// lcd.entry_mode_set(EntryMode::default())?;
@@ -168,13 +168,13 @@ pub trait HD44780: Write {
     /// From HD44780 datasheet:
     /// Sets interface data length, number of display lines, and character font.
     ///
-    /// # Examples
+    /// ## Examples
     /// ```edition2018,ignore
     /// let im = InitMode::DATA_4BIT | InitMode::LINES_2;
     /// lcd.function_set(im).?;
     /// ```
     ///
-    /// # Errors
+    /// ## Errors
     /// Returns an error when 2 lines and 5x10 font modes are selected together
     /// as that is not supported by the hardware.
     fn function_set(&mut self, mode: FunctionMode) -> Result {
@@ -191,7 +191,7 @@ pub trait HD44780: Write {
     /// Also returns display from being shifted to original position.
     /// DD RAM contents remain unchanged.
     ///
-    /// # Examples
+    /// ## Examples
     /// ```edition2018,ignore
     /// lcd.return_home()?;
     /// ```
@@ -208,7 +208,7 @@ pub trait HD44780: Write {
     /// Sets CG RAM address.
     /// CG RAM data is sent and received after this setting.
     ///
-    /// # Examples
+    /// ## Examples
     /// ```edition2018,ignore
     /// // Start of 2nd character.
     /// let location = 0x09;
@@ -225,7 +225,7 @@ pub trait HD44780: Write {
     /// Sets DD RAM address.
     /// DD RAM data is sent and received after this setting.
     ///
-    /// # Examples
+    /// ## Examples
     /// ```edition2018,ignore
     /// // Start of the 2nd line on 2 line display.
     /// let location = 0x40;
