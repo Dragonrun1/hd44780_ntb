@@ -2,6 +2,7 @@
 name = "hd44780-ntb"
 version = "0.0.4"
 authors = ["Michael Cummings <dragonrun1@gmail.com>"]
+description = "A non-text buffer embedded hal driver for hd44780 like LCD display controllers"
 edition = "2018"
 keywords = ["lcd", "embedded-hal-driver", "embedded-hal", "hd44780"]
 categories = ["embedded", "hardware-support", "linux"]
