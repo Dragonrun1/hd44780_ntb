@@ -40,7 +40,7 @@ use std::io::Write;
 /// the data output pins are connected to `D4` through `D7` and __NOT__ to the
 /// lower data pins `D0` through `D4`.
 ///
-/// # Remarks
+/// ## Remarks
 ///
 /// This driver assumes that the `RW` input on the display is pulled to `GND`
 /// forcing the display into `Write` mode at all times.
@@ -85,8 +85,6 @@ where
     /// * `data` - An already setup array or Vec of GPIO output pins that are
     /// connected to the data inputs of the display. Only 4 or 8 pins should be
     /// used.
-    ///
-    /// The driver assumes that the RW pin
     ///
     /// ## Examples
     /// For examples of using the driver in both 4 and 8 bit modes have look at

@@ -79,7 +79,7 @@ pub trait HD44780: Write {
     /// Used to initialize the display into a know state.
     ///
     /// Normally the display controller's power on reset sets up the display
-    /// into a known state.
+    /// into a known 8 bit interface state.
     /// In cases where the reset hasn't done so correctly or another program has
     /// left the display in an unknown state this method can be used to get the
     /// display into a known state.
@@ -133,7 +133,7 @@ pub trait HD44780: Write {
     /// Set display on/off controls.
     ///
     /// From HD44780 datasheet:
-    /// Sets entire display on/off,cursor on/off , and blinking of cursor
+    /// Sets entire display on/off, cursor on/off, and blinking of cursor
     /// position character.
     ///
     /// ## Examples
@@ -164,6 +164,8 @@ pub trait HD44780: Write {
     ///
     /// Normally would be called only once in a new/constructor type function
     /// for the instance.
+    /// In most cases [init()] should be used instead to make changes and to
+    /// insure correct initialization of the hardware.
     ///
     /// From HD44780 datasheet:
     /// Sets interface data length, number of display lines, and character font.
@@ -177,6 +179,8 @@ pub trait HD44780: Write {
     /// ## Errors
     /// Returns an error when 2 lines and 5x10 font modes are selected together
     /// as that is not supported by the hardware.
+    ///
+    /// [init()]: #method.init
     fn function_set(&mut self, mode: FunctionMode) -> Result {
         if mode.contains(FunctionMode::LINES_2) && mode.contains(FunctionMode::DOTS_5X10) {
             return Err(InvalidLineAndFontMode);
