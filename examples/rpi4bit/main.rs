@@ -48,7 +48,7 @@ use std::time::Duration;
 const MESSAGE_DELAY: u64 = 2;
 /// Some common default GPIO pin numbers
 /// This are the same as use in the
-/// [SunFounder Super Kit](https://www.sunfounder.com/learn/category/Super_Kit_V2_for_RaspberryPi.html).
+/// [SunFounder Super Kit V2](https://www.sunfounder.com/learn/category/Super_Kit_V2_for_RaspberryPi.html).
 const PIN_D4: u64 = 25;
 const PIN_D5: u64 = 24;
 const PIN_D6: u64 = 23;
