@@ -89,7 +89,15 @@ pub trait HD44780: Write {
     /// The best description I found of how to do the necessary 4 or 8 bit mode
     /// selection can be found in the Wikipedia [HD44780] article.
     ///
+    /// ## Arguments
+    /// * `fs_mode` - Same as function mode bit flags used with [function_set()] command.
+    /// * `dc_mode` - Same as display mode bit flags used with [display_control()] command.
+    /// * `ems_mode` - Same as entry mode bit flags used with [entry_mode_set()] command.
+    ///
     /// [HD44780]: https://en.wikipedia.org/wiki/Hitachi_HD44780_LCD_controller#Mode_selection
+    /// [function_set()]: trait.HD44780.html#method.function_set
+    /// [display_control()]: trait.HD44780.html#method.display_control
+    /// [entry_mode_set()]: trait.HD44780.html#method.entry_mode_set
     ///
     fn init<FSM, DCM, EMSM>(&mut self, fs_mode: FSM, dc_mode: DCM, ems_mode: EMSM) -> Result
     where
