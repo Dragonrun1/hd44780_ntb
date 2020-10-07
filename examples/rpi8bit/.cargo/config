@@ -1,5 +1,4 @@
 [build]
 target = "armv7-unknown-linux-musleabihf"
 [target.armv7-unknown-linux-musleabihf]
-#linker = "arm-none-eabi-gcc"
 linker = "arm-linux-gnueabihf-gcc"
