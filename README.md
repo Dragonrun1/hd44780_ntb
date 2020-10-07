@@ -32,17 +32,17 @@ Windows 10 and a 4GB Raspberry Pi 4 running the Raspberry Pi OS (Raspbian).
 
 To use the crate in your own project all you need to do is include it in
 `[dependencies]` of you project like you would any other crate.
-On the command line you could use:
+If you have [cargo-edit] install then on the command line you can use:
 
 ```shell script
-cargo install hd44780_ntb
+cargo add hd44780-ntb
 ```
 
 Which should add something like this in your [Cargo.toml]:
 
 ```toml
 [dependencies]
-hd44780-ntb = "0.0.4"
+hd44780-ntb = "0.0.5"
 ```
 
 ## Examples
@@ -61,7 +61,10 @@ examples were used for testing during initial development on a RPi 4.
 
 Here's a short clip from a run of the rpi4bit example:
 
-<img src="media/RPi4bit-demo640.gif" alt="Raspberry Pi 4 demo of rpi4bit example">
+<video width="640" controls>
+    <source src="https://drive.google.com/open?id=1AmDToIt7GqLQJ8HaOB1L77cYCYlXot8o" type="video/mp4">
+    Your browser does not support any of the available video format of this video.
+</video>
 <br>
 
 To build this example start by clone this project somewhere on your Raspberry
@@ -112,6 +115,7 @@ All documentation like this README is licensed under a
 [Cargo.toml]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [CC-BY-SA]: http://creativecommons.org/licenses/by-sa/4.0/
 [Contributor Covenant Code of Conduct]: CODE_OF_CONDUCT.md
+[cargo-edit]: https://crates.io/crates/cargo-edit
 [crates.io]: https://crates.io/search?q=hd44780
 [HD44780]: https://en.wikipedia.org/wiki/Hitachi_HD44780_LCD_controller/
 [hd44780-driver]: https://crates.io/crates/hd44780-driver
