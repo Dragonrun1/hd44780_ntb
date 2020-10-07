@@ -1,6 +1,6 @@
 [package]
 name = "hd44780-ntb"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Michael Cummings <dragonrun1@gmail.com>"]
 description = "A non-text buffer embedded hal driver for hd44780 like LCD display controllers"
 edition = "2018"
@@ -13,11 +13,11 @@ repository = "https://github.com/Dragonrun1/hd44780_ntb"
 
 [dependencies]
 bitflags = "1.2.1"
-embedded-hal = "0.2.3"
+embedded-hal = "0.2.4"
 sysfs_gpio = "0.5.4"
 thiserror = "1.0.20"
 
 [dev-dependencies]
-anyhow = "1.0.31"
+anyhow = "1.0.32"
 linux-embedded-hal = "0.3.0"
 
