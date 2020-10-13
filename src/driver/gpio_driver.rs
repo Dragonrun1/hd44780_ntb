@@ -180,11 +180,11 @@ where
         self.set_control_bits(RegisterSelect::Data)?;
         Ok(())
     }
-    fn init<FSM, DCM, EMSM>(&mut self, fs_mode: FSM, dc_mode: DCM, ems_mode: EMSM) -> Result
+    fn init<FM, DM, EM>(&mut self, fs_mode: FM, dc_mode: DM, ems_mode: EM) -> Result
     where
-        FSM: Into<Option<FunctionMode>>,
-        DCM: Into<Option<DisplayMode>>,
-        EMSM: Into<Option<EntryMode>>,
+        FM: Into<Option<FunctionMode>>,
+        DM: Into<Option<DisplayMode>>,
+        EM: Into<Option<EntryMode>>,
     {
         let fs = fs_mode.into().unwrap_or_default();
         let dc = dc_mode.into().unwrap_or_default();

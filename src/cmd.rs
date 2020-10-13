@@ -99,11 +99,11 @@ pub trait HD44780: Write {
     /// [display_control()]: trait.HD44780.html#method.display_control
     /// [entry_mode_set()]: trait.HD44780.html#method.entry_mode_set
     ///
-    fn init<FSM, DCM, EMSM>(&mut self, fs_mode: FSM, dc_mode: DCM, ems_mode: EMSM) -> Result
+    fn init<FM, DM, EM>(&mut self, fs_mode: FM, dc_mode: DM, ems_mode: EM) -> Result
     where
-        FSM: Into<Option<FunctionMode>>,
-        DCM: Into<Option<DisplayMode>>,
-        EMSM: Into<Option<EntryMode>>;
+        FM: Into<Option<FunctionMode>>,
+        DM: Into<Option<DisplayMode>>,
+        EM: Into<Option<EntryMode>>;
     //
     // ## Shouldn't need to change these in driver implementations. ##
     //
@@ -134,7 +134,11 @@ pub trait HD44780: Write {
     /// let sm = ShiftMode::CURSOR_MOVE | ShiftMode::MOVE_RIGHT
     /// lcd.cursor_shift(sm)?;
     /// ```
-    fn cursor_shift(&mut self, mode: ShiftMode) -> Result {
+    fn cursor_shift<SM>(&mut self, mode: SM) -> Result
+    where
+    SM: Into<ShiftMode>
+    {
+        let mode = mode.into();
         let cmd: u8 = Self::CURSOR_SHIFT | mode.bits();
         self.command(cmd, Self::COMMAND_DELAY)
     }
@@ -149,7 +153,11 @@ pub trait HD44780: Write {
     /// let dm = DisplayMode::DISPLAY_ON | DisplayMode::CURSOR_ON;
     /// lcd.display_control(dm)?;
     /// ```
-    fn display_control(&mut self, mode: DisplayMode) -> Result {
+    fn display_control<DM>(&mut self, mode:DM) -> Result
+    where
+        DM: Into<DisplayMode>
+    {
+        let mode = mode.into();
         let cmd = Self::DISPLAY_CONTROL | mode.bits();
         self.command(cmd, Self::COMMAND_DELAY)
     }
@@ -164,7 +172,11 @@ pub trait HD44780: Write {
     /// // EntryMode::default() == EntryMode::ENTRY_SHIFT_INCREMENT
     /// lcd.entry_mode_set(EntryMode::default())?;
     /// ```
-    fn entry_mode_set(&mut self, mode: EntryMode) -> Result {
+    fn entry_mode_set<EM>(&mut self, mode: EM) -> Result
+    where
+    EM: Into<EntryMode>
+    {
+        let mode = mode.into();
         let cmd: u8 = Self::ENTRY_MODE_SET | mode.bits();
         self.command(cmd, Self::COMMAND_DELAY)
     }
@@ -189,7 +201,11 @@ pub trait HD44780: Write {
     /// as that is not supported by the hardware.
     ///
     /// [init()]: #method.init
-    fn function_set(&mut self, mode: FunctionMode) -> Result {
+    fn function_set<FM>(&mut self, mode: FM) -> Result
+    where
+    FM: Into<FunctionMode>
+    {
+        let mode = mode.into();
         if mode.contains(FunctionMode::LINES_2) && mode.contains(FunctionMode::DOTS_5X10) {
             return Err(InvalidLineAndFontMode);
         }
