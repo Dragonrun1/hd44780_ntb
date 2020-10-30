@@ -34,7 +34,7 @@ To use the crate in your own project all you need to do is include it in
 `[dependencies]` of you project like you would any other crate.
 If you have [cargo-edit] install then on the command line you can use:
 
-```shell script
+```shell
 cargo add hd44780-ntb
 ```
 
@@ -44,6 +44,8 @@ Which should add something like this in your [Cargo.toml]:
 [dependencies]
 hd44780-ntb = "0.0.5"
 ```
+
+You can find the latest version by go to [hd44780-driver] on the crates.io website. 
 
 ## Examples
 
@@ -70,19 +72,19 @@ Here's a short clip from a run of the rpi4bit example:
 To build this example start by clone this project somewhere on your Raspberry
 Pi:
 
-```shell script
+```shell
 git clone https://github.com/Dragonrun1/hd44780_ntb
 ```
 
 Next execute the follow to build the example:
 
-```shell script
+```shell
 cargo build --example rpi4bit
 ```
 
 And finally execute:
 
-```shell script
+```shell
 sudo ./target/debug/examples/rpi4bit
 ```
 
@@ -116,7 +118,6 @@ All documentation like this README is licensed under a
 [CC-BY-SA]: http://creativecommons.org/licenses/by-sa/4.0/
 [Contributor Covenant Code of Conduct]: CODE_OF_CONDUCT.md
 [cargo-edit]: https://crates.io/crates/cargo-edit
-[crates.io]: https://crates.io/search?q=hd44780
 [HD44780]: https://en.wikipedia.org/wiki/Hitachi_HD44780_LCD_controller/
 [hd44780-driver]: https://crates.io/crates/hd44780-driver
 [LICENSE]: LICENSE

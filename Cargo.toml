@@ -1,6 +1,6 @@
 [package]
 name = "hd44780-ntb"
-version = "0.0.6"
+version = "0.0.7"
 authors = ["Michael Cummings <dragonrun1@gmail.com>"]
 description = "A non-text buffer embedded hal driver for hd44780 like LCD display controllers"
 edition = "2018"
